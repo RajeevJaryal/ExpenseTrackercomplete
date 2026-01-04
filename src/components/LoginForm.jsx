@@ -1,7 +1,7 @@
 
 import React, { useRef, useState } from "react";
 
-const FIREBASE_API_KEY = "AIzaSyD_l7c84umFPHaOHg0RAHwrIG8Dphwuo_8";
+const FIREBASE_API_KEY = "";
 
 const LoginForm = () => {
   const emailRef = useRef();
