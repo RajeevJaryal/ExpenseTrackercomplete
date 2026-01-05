@@ -24,7 +24,6 @@ const LoginForm = () => {
   const submitHandler = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log(import.meta.env.VITE_FIREBASE_API_KEY);
 
     let email, password;
 
@@ -67,6 +66,7 @@ const LoginForm = () => {
       
       localStorage.setItem("token", data.idToken);
       localStorage.setItem("email", data.email);
+      localStorage.setItem("emailVerified", data.emailVerified);
 
       if (isLogin) {
         alert("Login successful!");
