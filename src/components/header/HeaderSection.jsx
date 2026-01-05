@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./HeaderSection.css";
 
 const API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
 
@@ -8,6 +9,10 @@ const HeaderSection = () => {
   const [loading, setLoading] = useState(false);
 
   const emailVerified = localStorage.getItem("emailVerified") === "true";
+  const logoutHandler = () => {
+    localStorage.clear();
+    navigate("/");
+  };
 
   const verifyEmailHandler = async () => {
     setLoading(true);
@@ -21,7 +26,7 @@ const HeaderSection = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             requestType: "VERIFY_EMAIL",
-            idToken: idToken,
+            idToken,
           }),
         }
       );
@@ -32,38 +37,40 @@ const HeaderSection = () => {
         throw new Error(data.error.message);
       }
 
-      alert("Verification email sent! Check your inbox 📩");
+      alert("Verification email sent! 📩 Check your inbox.");
     } catch (error) {
-      // 🔴 Handle Firebase errors
-      if (error.message === "INVALID_ID_TOKEN") {
-        alert("Session expired. Please login again.");
-      } else if (error.message === "USER_NOT_FOUND") {
-        alert("User not found.");
-      } else {
-        alert(error.message);
-      }
+      alert(error.message);
     }
 
     setLoading(false);
   };
 
   return (
-    <>
-      <h2>Welcome to Expense Tracker</h2>
+    <header className="header">
+      
+      <div className="header-top">
+        <h2 className="logo">Expense Tracker</h2>
 
+        <button className="logout-btn" onClick={logoutHandler}>
+          Logout
+        </button>
+      </div>
+
+     
       {!emailVerified && (
         <div className="warning">
           <p>Your email is not verified.</p>
-          <button onClick={verifyEmailHandler} disabled={loading}>
-            {loading ? "Sending..." : "Verify Email"}
-          </button>
+          <button onClick={verifyEmailHandler}>Verify Email</button>
         </div>
       )}
 
-      <button onClick={() => navigate("/complete-profile")}>
+      <button
+        className="primary-btn"
+        onClick={() => navigate("/complete-profile")}
+      >
         Complete Profile
       </button>
-    </>
+    </header>
   );
 };
 
