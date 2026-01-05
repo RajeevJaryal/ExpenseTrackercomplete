@@ -1,14 +1,15 @@
-import { useState } from 'react'
-import LoginForm from './components/LoginForm'
-
+import LoginForm from "./components/form/LoginForm";
+import HeaderSection from "./components/header/HeaderSection";
+import { Routes, Route } from "react-router-dom";
+import CompleteProfile from "./components/header/CompleteProfile";
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <LoginForm/>
-    </>
-  )
+    <Routes>
+      <Route path="/" element={<LoginForm />} />
+      <Route path="/header" element={<HeaderSection />} />
+      <Route path="/complete-profile" element={<CompleteProfile />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
