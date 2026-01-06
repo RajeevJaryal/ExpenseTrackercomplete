@@ -47,16 +47,16 @@ const HeaderSection = () => {
 
   return (
     <header className="header">
-      
       <div className="header-top">
         <h2 className="logo">Expense Tracker</h2>
 
-        <button className="logout-btn" onClick={logoutHandler}>
-          Logout
-        </button>
+        <div className="header-actions">
+          <button className="logout-btn" onClick={logoutHandler}>
+            Logout
+          </button>
+        </div>
       </div>
 
-     
       {!emailVerified && (
         <div className="warning">
           <p>Your email is not verified.</p>
@@ -64,12 +64,21 @@ const HeaderSection = () => {
         </div>
       )}
 
-      <button
-        className="primary-btn"
-        onClick={() => navigate("/complete-profile")}
-      >
-        Complete Profile
-      </button>
+      <div className="header-bottom">
+        <button
+          className="primary-btn"
+          onClick={() => navigate("/complete-profile")}
+        >
+          Complete Profile
+        </button>
+
+        <button
+          className="secondary-btn"
+          onClick={() => navigate("/expense-form")}
+        >
+          Enter Expense
+        </button>
+      </div>
     </header>
   );
 };

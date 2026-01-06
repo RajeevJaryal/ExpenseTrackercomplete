@@ -1,0 +1,83 @@
+/* Container spacing */
+.expense-list {
+  max-width: 700px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+/* Individual expense card */
+.expense-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Left content */
+.expense-info h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #111827;
+}
+
+.expense-info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Category badge */
+.expense-category {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+/* Remove button */
+.remove-btn {
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.remove-btn:hover {
+  background: #fecaca;
+}
+
+.remove-btn:active {
+  transform: scale(0.95);
+}
+
+/* Empty state */
+.empty-text {
+  text-align: center;
+  color: #6b7280;
+  margin-top: 30px;
+  font-size: 15px;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
