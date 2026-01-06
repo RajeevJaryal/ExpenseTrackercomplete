@@ -3,28 +3,22 @@ import { ExpenseContext } from "../../store/context/ExpenseContext";
 import "./PrintExpense.css";
 
 const PrintExpense = () => {
-  const { removeData, expenseData } = useContext(ExpenseContext);
+  const { expenseData, loading } = useContext(ExpenseContext);
 
-  if (expenseData.length === 0) {
-    return <p className="empty-text">No expenses added yet</p>;
-  }
+  if (loading) return <p className="expense-loading">Loading expenses...</p>;
+
+  if (expenseData.length === 0)
+    return <p className="expense-empty">No expenses added yet.</p>;
 
   return (
     <div className="expense-list">
       {expenseData.map((item) => (
         <div className="expense-card" key={item.id}>
-          <div className="expense-info">
-            <h4>₹{item.money}</h4>
-            <p>{item.description}</p>
+          <div className="expense-top">
+            <h4 className="expense-amount">₹ {item.money}</h4>
             <span className="expense-category">{item.category}</span>
           </div>
-
-          <button
-            className="remove-btn"
-            onClick={() => removeData(item.id)}
-          >
-            Remove
-          </button>
+          <p className="expense-description">{item.description}</p>
         </div>
       ))}
     </div>

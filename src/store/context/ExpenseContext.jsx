@@ -1,28 +1,65 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
+import firebaseAPI from "../../api/firebase";
 
-export const ExpenseContext=createContext();
+export const ExpenseContext = createContext();
 
-const ContextProvider=(props)=>{
-    const [expenseData,setExpenseData]=useState([]);
+const ExpenseProvider = ({ children }) => {
+  const [expenseData, setExpenseData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-    const addData=(expense)=>{
-        setExpenseData((prev)=>[...prev,expense])
+  /* 🔹 ADD EXPENSE (POST) */
+  const addData = async (expense) => {
+    setLoading(true);
+    try {
+      const response = await firebaseAPI.post("/expenses.json", expense);
+
+      if (response.status === 200) {
+        setExpenseData((prev) => [
+          { id: response.data.name, ...expense },
+          ...prev,
+        ]);
+      }
+    } catch (error) {
+      alert("Failed to add expense");
     }
+    setLoading(false);
+  };
 
-    const removeData=(id)=>{
-        setExpenseData((prev)=>prev.filter((item)=>item.id!==id));
+  /* 🔹 FETCH EXPENSES (GET) */
+  const fetchExpenses = async () => {
+    setLoading(true);
+    try {
+      const response = await firebaseAPI.get("/expenses.json");
+
+      if (response.status === 200 && response.data) {
+        const loadedExpenses = Object.keys(response.data).map((key) => ({
+          id: key,
+          ...response.data[key],
+        }));
+
+        setExpenseData(loadedExpenses.reverse());
+      }
+    } catch (error) {
+      alert("Failed to load expenses");
     }
+    setLoading(false);
+  };
 
-    return(
-        <ExpenseContext.Provider value={{
-            addData,
-            removeData,
-            expenseData,
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
 
-        }}>
-            {props.children}
-        </ExpenseContext.Provider>
-    )
-}
+  return (
+    <ExpenseContext.Provider
+      value={{
+        expenseData,
+        addData,
+        loading,
+      }}
+    >
+      {children}
+    </ExpenseContext.Provider>
+  );
+};
 
-export default ContextProvider;
+export default ExpenseProvider;

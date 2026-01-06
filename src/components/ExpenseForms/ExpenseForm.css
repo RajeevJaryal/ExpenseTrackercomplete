@@ -1,76 +1,88 @@
-/* Page section */
-.expense-section {
-  max-width: 800px;
-  margin: 30px auto;
+/* ===== PAGE CONTAINER ===== */
+.expense-container {
+  max-width: 900px;
+  margin: 24px auto;
   padding: 0 16px;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
 }
 
-/* Form card */
+/* ===== FORM CARD ===== */
 .expense-form {
   background: #ffffff;
-  padding: 22px 24px;
+  border: 1px solid #e5e7eb;
   border-radius: 14px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
-  margin-bottom: 28px;
-}
-
-/* Form group */
-.form-group {
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  margin-bottom: 16px;
+  gap: 14px;
+  height: fit-content;
 }
 
-.form-group label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 6px;
+/* ===== FORM TITLE ===== */
+.expense-form h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
 }
 
-/* Inputs */
-.form-group input,
-.form-group textarea,
-.form-group select {
+/* ===== INPUTS ===== */
+.expense-form input,
+.expense-form textarea,
+.expense-form select {
+  width: 100%;
   padding: 10px 12px;
+  font-size: 13px;
   border-radius: 8px;
   border: 1px solid #d1d5db;
-  font-size: 14px;
   outline: none;
-  transition: border 0.2s, box-shadow 0.2s;
+  transition: border 0.15s ease, box-shadow 0.15s ease;
 }
 
-.form-group textarea {
+.expense-form textarea {
   resize: none;
-  min-height: 80px;
+  min-height: 70px;
 }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+/* ===== FOCUS ===== */
+.expense-form input:focus,
+.expense-form textarea:focus,
+.expense-form select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
 }
 
-/* Submit button */
-.submit-btn {
-  margin-top: 8px;
-  width: 100%;
-  padding: 12px;
-  background: #4f46e5;
-  color: #ffffff;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
+/* ===== BUTTON ===== */
+.expense-form button {
+  margin-top: 6px;
+  height: 38px;
+  font-size: 14px;
   font-weight: 500;
+  border-radius: 10px;
+  border: none;
+  background: #6366f1;
+  color: #ffffff;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  transition: background 0.15s ease;
 }
 
-.submit-btn:hover {
-  background: #4338ca;
+.expense-form button:hover {
+  background: #4f46e5;
 }
 
-.submit-btn:active {
-  transform: scale(0.97);
+.expense-form button:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .expense-container {
+    grid-template-columns: 1fr;
+  }
+
+  .expense-form {
+    padding: 16px;
+  }
 }

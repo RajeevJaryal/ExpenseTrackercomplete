@@ -4,16 +4,16 @@ import PrintExpense from "./PrintExpense";
 import "./ExpenseForm.css";
 
 const ExpenseForm = () => {
-  const { addData } = useContext(ExpenseContext);
+  const { addData, loading } = useContext(ExpenseContext);
+
   const [money, setMoney] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Food");
 
-  const addToForm = (e) => {
+  const submitHandler = (e) => {
     e.preventDefault();
 
     addData({
-      id: Date.now(),
       money: Number(money),
       description,
       category,
@@ -25,46 +25,36 @@ const ExpenseForm = () => {
   };
 
   return (
-    <section className="expense-section">
-      <form className="expense-form" onSubmit={addToForm}>
-        <div className="form-group">
-          <label htmlFor="moneySpent">Money Spent</label>
-          <input
-            type="number"
-            id="moneySpent"
-            placeholder="Enter spent money"
-            value={money}
-            onChange={(e) => setMoney(e.target.value)}
-            required
-          />
-        </div>
+    <section className="expense-container">
+      <form className="expense-form" onSubmit={submitHandler}>
+        <h3>Add Expense</h3>
 
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            placeholder="Enter where you spent and what you spent"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-        </div>
+        <input
+          type="number"
+          value={money}
+          onChange={(e) => setMoney(e.target.value)}
+          placeholder="Money spent"
+          required
+        />
 
-        <div className="form-group">
-          <label htmlFor="expenseCategory">Category</label>
-          <select
-            id="expenseCategory"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="Food">Food</option>
-            <option value="Petrol">Petrol</option>
-            <option value="Salary">Salary</option>
-          </select>
-        </div>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Description"
+          required
+        />
 
-        <button type="submit" className="submit-btn">
-          Save
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          <option>Food</option>
+          <option>Petrol</option>
+          <option>Salary</option>
+        </select>
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Saving..." : "Save Expense"}
         </button>
       </form>
 
