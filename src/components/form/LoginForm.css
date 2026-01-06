@@ -159,6 +159,14 @@ button:disabled {
 .switch span:hover {
   text-decoration: underline;
 }
+.forgot-password span {
+  color: #4f46e5;
+  cursor: pointer;
+  font-size: 14px;
+}
+.forgot-password span:hover {
+  text-decoration: underline;
+}
 
 @keyframes gradientShift {
   0% {

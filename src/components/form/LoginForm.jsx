@@ -63,14 +63,13 @@ const LoginForm = () => {
         throw new Error(data.error.message || "Authentication failed!");
       }
 
-      
       localStorage.setItem("token", data.idToken);
       localStorage.setItem("email", data.email);
       localStorage.setItem("emailVerified", data.emailVerified);
 
       if (isLogin) {
         alert("Login successful!");
-        navigate("/header"); 
+        navigate("/header");
       } else {
         alert("Account created successfully!");
         setIsLogin(true);
@@ -85,7 +84,6 @@ const LoginForm = () => {
   return (
     <div className="scene">
       <div className={`card ${!isLogin ? "flip" : ""}`}>
-
         <div className="card-face card-front">
           <h2>Login</h2>
 
@@ -104,7 +102,11 @@ const LoginForm = () => {
               {isLoading ? "Logging in..." : "Login"}
             </button>
           </form>
-
+          <p className="forgot-password">
+            <span onClick={() => navigate("/forgot-password")}>
+              Forgot Password?
+            </span>
+          </p>
           <p className="switch">
             New user?
             <span onClick={switchModeHandler}> Create account</span>
@@ -140,7 +142,6 @@ const LoginForm = () => {
             <span onClick={switchModeHandler}> Login</span>
           </p>
         </div>
-
       </div>
     </div>
   );
