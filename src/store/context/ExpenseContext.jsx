@@ -25,6 +25,33 @@ const ExpenseProvider = ({ children }) => {
     setLoading(false);
   };
 
+
+  /* 🔹 DELETE EXPENSES (DELETE) */
+  const deleteExpense=async(id)=>{
+    
+    try{
+      await firebaseAPI.delete(`/expenses/${id}.json`);
+      setExpenseData((prev)=>prev.filter((ex)=>ex.id!==id));
+    }catch(error){
+      alert(error);
+    }
+  };
+
+  const editData = async (id, updatedExpense) => {
+  
+  try {
+    await firebaseAPI.put(`/expenses/${id}.json`, updatedExpense);
+
+    setExpenseData((prev) =>
+      prev.map((ex) => (ex.id === id ? { id, ...updatedExpense } : ex))
+    );
+  } catch (error) {
+    console.error("Edit failed:", error);
+  }
+};
+
+
+
   /* 🔹 FETCH EXPENSES (GET) */
   const fetchExpenses = async () => {
     setLoading(true);
@@ -55,6 +82,8 @@ const ExpenseProvider = ({ children }) => {
         expenseData,
         addData,
         loading,
+        deleteExpense,
+        editData,
       }}
     >
       {children}

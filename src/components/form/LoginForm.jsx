@@ -68,7 +68,6 @@ const LoginForm = () => {
       localStorage.setItem("emailVerified", data.emailVerified);
 
       if (isLogin) {
-        alert("Login successful!");
         navigate("/header");
       } else {
         alert("Account created successfully!");

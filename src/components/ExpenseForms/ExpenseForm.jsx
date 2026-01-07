@@ -4,30 +4,44 @@ import PrintExpense from "./PrintExpense";
 import "./ExpenseForm.css";
 
 const ExpenseForm = () => {
-  const { addData, loading } = useContext(ExpenseContext);
+  const { addData, updateData, loading } = useContext(ExpenseContext);
 
   const [money, setMoney] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Food");
 
+  const [editingId, setEditingId] = useState(null);
+
   const submitHandler = (e) => {
     e.preventDefault();
 
-    addData({
+    const expense = {
+      id: editingId ?? Date.now(),
       money: Number(money),
       description,
       category,
-    });
+    };
 
+    if (editingId) {
+      updateData(expense);
+    } else {
+      addData(expense);
+    }
+
+    resetForm();
+  };
+
+  const resetForm = () => {
     setMoney("");
     setDescription("");
     setCategory("Food");
+    setEditingId(null);
   };
 
   return (
     <section className="expense-container">
       <form className="expense-form" onSubmit={submitHandler}>
-        <h3>Add Expense</h3>
+        <h3>{editingId ? "Edit Expense" : "Add Expense"}</h3>
 
         <input
           type="number"
@@ -54,11 +68,28 @@ const ExpenseForm = () => {
         </select>
 
         <button type="submit" disabled={loading}>
-          {loading ? "Saving..." : "Save Expense"}
+          {loading
+            ? editingId
+              ? "Updating..."
+              : "Saving..."
+            : editingId
+            ? "Update Expense"
+            : "Save Expense"}
         </button>
+
+        {editingId && (
+          <button type="button" onClick={resetForm}>
+            Cancel Edit
+          </button>
+        )}
       </form>
 
-      <PrintExpense />
+      <PrintExpense
+        setEditingId={setEditingId}
+        setMoney={setMoney}
+        setDescription={setDescription}
+        setCategory={setCategory}
+      />
     </section>
   );
 };
