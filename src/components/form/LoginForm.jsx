@@ -1,8 +1,8 @@
 import React, { useRef, useState } from "react";
 import "./LoginForm.css";
 import { useNavigate } from "react-router-dom";
-
-const API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser, signUpUser } from "../../store/AuthReducer";
 
 const LoginForm = () => {
   const loginEmailRef = useRef();
@@ -13,9 +13,12 @@ const LoginForm = () => {
   const confirmPasswordRef = useRef();
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [isLogin, setIsLogin] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // ⬇ Redux state
+  const { loading, error, token } = useSelector((state) => state.auth);
 
   const switchModeHandler = () => {
     setIsLogin((prev) => !prev);
@@ -23,69 +26,39 @@ const LoginForm = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
 
     let email, password;
 
     if (isLogin) {
       email = loginEmailRef.current.value;
       password = loginPasswordRef.current.value;
+      dispatch(loginUser({ email, password }))
+        .unwrap()
+        .then(() => navigate("/header"))
+        .catch((err) => alert(err));
     } else {
       email = signupEmailRef.current.value;
       password = signupPasswordRef.current.value;
       const confirmPassword = confirmPasswordRef.current.value;
 
-      if (password !== confirmPassword) {
-        alert("Passwords do not match!");
-        setIsLoading(false);
-        return;
-      }
+      if (password !== confirmPassword) return alert("Passwords don't match");
+
+      dispatch(signUpUser({ email, password }))
+        .unwrap()
+        .then(() => {
+          alert("Account created! Please login.");
+          setIsLogin(true);
+        })
+        .catch((err) => alert(err));
     }
-
-    const url = isLogin
-      ? `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`
-      : `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`;
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          returnSecureToken: true,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error.message || "Authentication failed!");
-      }
-
-      localStorage.setItem("token", data.idToken);
-      localStorage.setItem("email", data.email);
-      localStorage.setItem("emailVerified", data.emailVerified);
-
-      if (isLogin) {
-        navigate("/header");
-      } else {
-        alert("Account created successfully!");
-        setIsLogin(true);
-      }
-    } catch (error) {
-      alert(error.message);
-    }
-
-    setIsLoading(false);
   };
 
   return (
     <div className="scene">
       <div className={`card ${!isLogin ? "flip" : ""}`}>
+        {/* LOGIN SIDE */}
         <div className="card-face card-front">
           <h2>Login</h2>
-
           <form onSubmit={submitHandler}>
             <div className="field">
               <input type="email" ref={loginEmailRef} required />
@@ -97,10 +70,11 @@ const LoginForm = () => {
               <label>Password</label>
             </div>
 
-            <button disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Login"}
+            <button disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
             </button>
           </form>
+          {error && <p className="error">{error}</p>}
           <p className="forgot-password">
             <span onClick={() => navigate("/forgot-password")}>
               Forgot Password?
@@ -112,6 +86,7 @@ const LoginForm = () => {
           </p>
         </div>
 
+        {/* SIGN UP SIDE */}
         <div className="card-face card-back">
           <h2>Create Account</h2>
 
@@ -131,10 +106,12 @@ const LoginForm = () => {
               <label>Confirm Password</label>
             </div>
 
-            <button disabled={isLoading}>
-              {isLoading ? "Creating..." : "Sign Up"}
+            <button disabled={loading}>
+              {loading ? "Creating..." : "Sign Up"}
             </button>
           </form>
+
+          {error && <p className="error">{error}</p>}
 
           <p className="switch">
             Already have an account?

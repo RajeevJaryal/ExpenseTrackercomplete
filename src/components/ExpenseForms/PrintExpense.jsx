@@ -1,5 +1,6 @@
-import React, { useContext } from "react";
-import { ExpenseContext } from "../../store/context/ExpenseContext";
+import React from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { deleteExpense } from "../../store/expensesSlice";
 import "./PrintExpense.css";
 
 const PrintExpense = ({
@@ -8,7 +9,8 @@ const PrintExpense = ({
   setDescription,
   setCategory,
 }) => {
-  const { expenseData, loading, deleteExpense } = useContext(ExpenseContext);
+  const dispatch = useDispatch();
+  const { expenseData, loading } = useSelector((state) => state.expenses);
 
   if (loading) return <p className="expense-loading">Loading expenses...</p>;
   if (expenseData.length === 0)
@@ -35,7 +37,7 @@ const PrintExpense = ({
           <div className="expense-actions">
             <button
               className="delete-btn"
-              onClick={() => deleteExpense(item.id)}
+              onClick={() => dispatch(deleteExpense(item.id))}
             >
               Delete
             </button>

@@ -1,10 +1,12 @@
-import React, { useContext, useState } from "react";
-import { ExpenseContext } from "../../store/context/ExpenseContext";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addExpense, editExpense } from "../../store/expensesSlice";
 import PrintExpense from "./PrintExpense";
 import "./ExpenseForm.css";
 
 const ExpenseForm = () => {
-  const { addData, updateData, loading } = useContext(ExpenseContext);
+  const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.expenses);
 
   const [money, setMoney] = useState("");
   const [description, setDescription] = useState("");
@@ -16,16 +18,15 @@ const ExpenseForm = () => {
     e.preventDefault();
 
     const expense = {
-      id: editingId ?? Date.now(),
       money: Number(money),
       description,
       category,
     };
 
     if (editingId) {
-      updateData(expense);
+      dispatch(editExpense({ id: editingId, updatedExpense: expense }));
     } else {
-      addData(expense);
+      dispatch(addExpense(expense));
     }
 
     resetForm();
