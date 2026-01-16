@@ -5,9 +5,12 @@ import CompleteProfile from "./components/header/CompleteProfile";
 import ForgotPassword from "./components/form/ForgotPassword";
 import ExpenseForm from "./components/ExpenseForms/ExpenseForm";
 import ExpenseLoader from "./ExpenseLoader"; // import wrapper
-
+import { useSelector } from "react-redux";
+import "./App.css";
 function App() {
+  const dark=useSelector((state)=>state.theme.darkMode);
   return (
+    <div className={dark ? "dark" : "light"}>
     <ExpenseLoader>
       <Routes>
         <Route path="/" element={<LoginForm />} />
@@ -17,6 +20,7 @@ function App() {
         <Route path="/expense-form" element={<ExpenseForm />} />
       </Routes>
     </ExpenseLoader>
+    </div>
   );
 }
 

@@ -161,3 +161,32 @@
     height: 34px;
   }
 }
+/* DARK THEME */
+body.dark-mode {
+  background-color: #111;
+  color: white;
+}
+
+body.dark-mode .header {
+  background-color: #222;
+  color: white;
+}
+
+body.dark-mode button {
+  background-color: #444;
+  color: white;
+  border-color: white;
+}
+
+body.dark-mode .primary-btn,
+body.dark-mode .secondary-btn,
+body.dark-mode .premium-btn {
+  background-color: #555;
+  color: #fff;
+}
+
+body.dark-mode input {
+  background-color: #333;
+  color: white;
+  border: 1px solid #777;
+}
