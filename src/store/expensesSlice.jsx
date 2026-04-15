@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, createSelector } from "@reduxjs/toolkit";
 import firebaseAPI from "../api/firebase";
 
 /* ================= FETCH ================= */
@@ -132,25 +132,24 @@ const expensesSlice = createSlice({
 export default expensesSlice.reducer;
 
 /* ================= SELECTOR ================= */
-export const selectSummary = (state) => {
-  const data = state.expenses.expenseData;
+export const selectSummary = createSelector(
+  [(state) => state.expenses.expenseData],
+  (expenseData) => {
+    let income = 0;
+    let expense = 0;
 
-  let income = 0;
-  let expense = 0;
+    expenseData.forEach((item) => {
+      if (item.category === "Salary") {
+        income += Number(item.money);
+      } else {
+        expense += Number(item.money);
+      }
+    });
 
-  data.forEach((item) => {
-    const amount = Number(item.money);
-
-    if (item.category === "Salary") {
-      income += amount;
-    } else {
-      expense += amount;
-    }
-  });
-
-  return {
-    income,
-    expense,
-    balance: income - expense,
-  };
-};
+    return {
+      income,
+      expense,
+      balance: income - expense,
+    };
+  }
+);

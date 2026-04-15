@@ -83,56 +83,74 @@ export default function HeaderSection() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
-      {/* NAVBAR */}
-      <nav className="sticky top-0 z-50 h-14 px-4 border-b border-white/5 bg-slate-950/80 backdrop-blur-lg flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-violet-600 to-pink-500 flex items-center justify-center text-sm font-bold">
+    <div className="min-h-screen bg-slate-950 text-white">
+      <nav className="sticky top-0 z-50 h-16 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl px-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 flex items-center justify-center font-bold text-lg">
             ₹
           </div>
-          <h1 className="text-sm font-semibold tracking-wide">
+
+          <h1 className="text-lg font-bold tracking-wide">
             ExpenseTracker
           </h1>
         </div>
 
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden text-xl"
-        >
-          ☰
-        </button>
+        <div className="hidden md:flex items-center gap-3">
+          {!premium && (
+            <button
+              onClick={() => dispatch(activatePremium())}
+              className="px-4 py-2 rounded-xl bg-yellow-500 text-black font-semibold"
+            >
+              👑 Premium
+            </button>
+          )}
 
-        {/* Desktop */}
-        <div className="hidden md:flex gap-3">
+          {premium && (
+            <>
+              <button
+                onClick={() => dispatch(toggleTheme())}
+                className="px-4 py-2 rounded-xl bg-white/5 border border-white/10"
+              >
+                {darkMode ? "☀️ Light" : "🌙 Dark"}
+              </button>
+
+              <button
+                onClick={() => downloadCSV(expenseData)}
+                className="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-400"
+              >
+                CSV
+              </button>
+            </>
+          )}
+
           <button
-            onClick={() => navigate("/expense-form")}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500"
+            onClick={() => navigate("/complete-profile")}
+            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10"
           >
-            + Add Expense
+            Profile
           </button>
 
           <button
             onClick={handleLogout}
-            className="px-4 py-2 rounded-xl border border-red-500 text-red-400"
+            className="px-4 py-2 rounded-xl border border-red-500/30 text-red-400"
           >
             Logout
           </button>
         </div>
+
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="md:hidden text-2xl"
+        >
+          ☰
+        </button>
       </nav>
 
-      {/* MOBILE MENU */}
       {menuOpen && (
-        <div className="md:hidden px-4 py-4 border-b border-white/5 bg-slate-950 space-y-3">
-          <button
-            onClick={() => navigate("/expense-form")}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500"
-          >
-            + Add Expense
-          </button>
-
+        <div className="md:hidden px-4 py-4 border-b border-white/10 bg-slate-950 space-y-3">
           <button
             onClick={() => navigate("/complete-profile")}
-            className="w-full py-3 rounded-xl bg-white/[0.03]"
+            className="w-full py-3 rounded-xl bg-white/5"
           >
             Profile
           </button>
@@ -150,7 +168,7 @@ export default function HeaderSection() {
             <>
               <button
                 onClick={() => dispatch(toggleTheme())}
-                className="w-full py-3 rounded-xl bg-white/[0.03]"
+                className="w-full py-3 rounded-xl bg-white/5"
               >
                 {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
               </button>
@@ -166,135 +184,170 @@ export default function HeaderSection() {
 
           <button
             onClick={handleLogout}
-            className="w-full py-3 rounded-xl border border-red-500 text-red-400"
+            className="w-full py-3 rounded-xl border border-red-500/30 text-red-400"
           >
             Logout
           </button>
         </div>
       )}
 
-      {/* VERIFY */}
       {!isVerified && (
-        <div className="mx-4 mt-4 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-          <p className="text-sm text-yellow-400 mb-3">
-            Your email is not verified
-          </p>
+        <div className="max-w-7xl mx-auto px-6 mt-4">
+          <div className="p-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex flex-col md:flex-row gap-3 md:items-center">
+            <p className="text-yellow-400 text-sm">
+              Your email is not verified
+            </p>
 
-          <button
-            onClick={handleVerifyEmail}
-            disabled={verifyLoading}
-            className="w-full py-3 rounded-xl bg-yellow-500 text-black font-semibold"
-          >
-            {verifyLoading ? "Sending..." : "Verify Email"}
-          </button>
+            <button
+              onClick={handleVerifyEmail}
+              disabled={verifyLoading}
+              className="md:ml-auto px-5 py-2 rounded-xl bg-yellow-500 text-black font-semibold"
+            >
+              {verifyLoading ? "Sending..." : "Verify Email"}
+            </button>
+          </div>
         </div>
       )}
 
-      {/* BODY */}
-      <div className="max-w-7xl mx-auto p-4">
-        {/* TITLE */}
-        <div className="mb-5">
-          <p className="text-gray-400 text-xs">Welcome back 👋</p>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
+        {/* HERO */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+          <div>
+            <p className="text-gray-400 text-sm mb-2">
+              Welcome back 👋
+            </p>
 
-          <h2 className="text-2xl font-bold leading-snug mt-1">
-            Financial{" "}
-            <span className="bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent">
-              Dashboard
-            </span>
-          </h2>
+            <h2 className="text-3xl md:text-5xl font-bold leading-tight">
+              Financial{" "}
+              <span className="bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent">
+                Dashboard
+              </span>
+            </h2>
+          </div>
+
+          <button
+            onClick={() => navigate("/expense-form")}
+            className="w-fit md:w-auto px-4 py-2 text-sm md:px-5 md:py-3 md:text-base rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 font-semibold hover:opacity-90 transition"
+          >
+            + Add Expense
+          </button>
         </div>
 
         {/* STATS */}
-        <div className="grid gap-3 mb-5">
-          <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5">
-            <p className="text-xs text-gray-400 mb-1">Balance</p>
-            <h3 className="text-xl font-bold text-violet-400">₹{balance}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+            <p className="text-gray-400 text-sm mb-2">Balance</p>
+            <h3 className="text-3xl font-bold text-violet-400">
+              ₹{balance}
+            </h3>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5">
-              <p className="text-xs text-gray-400 mb-1">Income</p>
-              <h3 className="text-lg font-bold text-emerald-400">
-                ₹{income}
-              </h3>
-            </div>
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+            <p className="text-gray-400 text-sm mb-2">Income</p>
+            <h3 className="text-3xl font-bold text-emerald-400">
+              ₹{income}
+            </h3>
+          </div>
 
-            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5">
-              <p className="text-xs text-gray-400 mb-1">Expense</p>
-              <h3 className="text-lg font-bold text-pink-400">
-                ₹{expense}
-              </h3>
-            </div>
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+            <p className="text-gray-400 text-sm mb-2">Expense</p>
+            <h3 className="text-3xl font-bold text-pink-400">
+              ₹{expense}
+            </h3>
           </div>
         </div>
 
         {/* SEARCH */}
-        <div className="space-y-3 mb-5">
-          <input
-            placeholder="Search transaction..."
-            className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/5 outline-none text-sm"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="rounded-2xl bg-white/5 border border-white/10 p-5 mb-8">
+          <div className="grid md:grid-cols-2 gap-4">
+            <input
+              placeholder="Search transaction..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-white/10 outline-none"
+            />
 
-          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setFilter(cat)}
-                className={`px-3 py-1.5 text-xs rounded-full whitespace-nowrap ${
-                  filter === cat
-                    ? "bg-violet-600"
-                    : "bg-white/[0.03] border border-white/5"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setFilter(cat)}
+                  className={`px-4 py-2 rounded-xl whitespace-nowrap text-sm ${
+                    filter === cat
+                      ? "bg-violet-600"
+                      : "bg-slate-900 border border-white/10"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* TRANSACTIONS */}
-        <div className="space-y-3">
-          {filtered.map((item) => (
-            <div
-              key={item.id}
-              className="p-4 rounded-xl bg-white/[0.03] border border-white/5"
-            >
-              <div className="flex justify-between gap-3">
+        <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/10">
+            <h3 className="text-xl font-semibold">
+              Recent Transactions
+            </h3>
+          </div>
+
+          <div className="divide-y divide-white/5">
+            {filtered.map((item) => (
+              <div
+                key={item.id}
+                className="px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:bg-white/[0.03]"
+              >
                 <div>
-                  <p className="font-medium text-sm">{item.description}</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="font-medium text-base">
+                    {item.description}
+                  </p>
+
+                  <p className="text-sm text-gray-400 mt-1">
                     {item.category}
                   </p>
                 </div>
 
-                <p
-                  className={`text-sm font-bold ${
-                    item.category === "Salary"
-                      ? "text-emerald-400"
-                      : "text-pink-400"
-                  }`}
-                >
-                  {item.category === "Salary" ? "+" : "-"}₹
-                  {Number(item.money).toLocaleString("en-IN")}
-                </p>
-              </div>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <p
+                    className={`text-lg font-bold ${
+                      item.category === "Salary"
+                        ? "text-emerald-400"
+                        : "text-pink-400"
+                    }`}
+                  >
+                    {item.category === "Salary" ? "+" : "-"}₹
+                    {Number(item.money).toLocaleString("en-IN")}
+                  </p>
 
-              <div className="flex gap-2 mt-4">
-                <button className="flex-1 py-2 rounded-lg bg-violet-600 text-sm">
-                  Edit
-                </button>
+                  <button
+                    onClick={() =>
+                      navigate(`/expense-form/${item.id}`)
+                    }
+                    className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-sm"
+                  >
+                    Edit
+                  </button>
 
-                <button
-                  onClick={() => dispatch(deleteExpense(item.id))}
-                  className="flex-1 py-2 rounded-lg bg-red-500/10 text-red-400 text-sm"
-                >
-                  Delete
-                </button>
+                  <button
+                    onClick={() =>
+                      dispatch(deleteExpense(item.id))
+                    }
+                    className="px-4 py-2 rounded-xl bg-red-500/10 text-red-400 text-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+
+            {filtered.length === 0 && (
+              <div className="px-6 py-10 text-center text-gray-400">
+                No transactions found
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
