@@ -1,13 +1,19 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import firebaseAPI from "../api/firebase";
 
-/* GET EXPENSES */
+/* ================= FETCH ================= */
 export const fetchExpenses = createAsyncThunk(
   "expenses/fetchExpenses",
-  async () => {
-    const response = await firebaseAPI.get("/expenses.json");
-    const data = response.data;
+  async (_, { getState }) => {
+    const { userId, token } = getState().auth;
 
+    if (!userId || !token) return [];
+
+    const res = await firebaseAPI.get(
+      `/expenses/${userId}.json?auth=${token}`
+    );
+
+    const data = res.data;
     if (!data) return [];
 
     return Object.keys(data)
@@ -16,71 +22,135 @@ export const fetchExpenses = createAsyncThunk(
   }
 );
 
-/*  ADD EXPENSE */
+/* ================= ADD ================= */
 export const addExpense = createAsyncThunk(
   "expenses/addExpense",
-  async (expense) => {
-    const response = await firebaseAPI.post("/expenses.json", expense);
-    return { id: response.data.name, ...expense };
+  async (expense, { getState }) => {
+    const { userId, token } = getState().auth;
+
+    if (!userId || !token) {
+      console.log("❌ USER OR TOKEN MISSING");
+      return;
+    }
+
+    const res = await firebaseAPI.post(
+      `/expenses/${userId}.json?auth=${token}`,
+      expense
+    );
+
+    return { id: res.data.name, ...expense };
   }
 );
 
-/* DELETE EXPENSE */
+/* ================= DELETE ================= */
 export const deleteExpense = createAsyncThunk(
   "expenses/deleteExpense",
-  async (id) => {
-    await firebaseAPI.delete(`/expenses/${id}.json`); 
+  async (id, { getState }) => {
+    const { userId, token } = getState().auth;
+
+    if (!userId || !token) return;
+
+    await firebaseAPI.delete(
+      `/expenses/${userId}/${id}.json?auth=${token}`
+    );
+
     return id;
   }
 );
 
-/* EDIT EXPENSE */
+/* ================= EDIT ================= */
 export const editExpense = createAsyncThunk(
   "expenses/editExpense",
-  async ({ id, updatedExpense }) => {
-    await firebaseAPI.put(`/expenses/${id}.json`, updatedExpense); 
+  async ({ id, updatedExpense }, { getState }) => {
+    const { userId, token } = getState().auth;
+
+    if (!userId || !token) return;
+
+    await firebaseAPI.put(
+      `/expenses/${userId}/${id}.json?auth=${token}`,
+      updatedExpense
+    );
+
     return { id, ...updatedExpense };
   }
 );
 
+/* ================= SLICE ================= */
 const expensesSlice = createSlice({
   name: "expenses",
   initialState: {
     expenseData: [],
     loading: false,
+    error: null,
   },
+
   reducers: {},
+
   extraReducers: (builder) => {
-    /* FETCH */
-    builder.addCase(fetchExpenses.pending, (state) => {
-      state.loading = true;
-    });
-    builder.addCase(fetchExpenses.fulfilled, (state, action) => {
-      state.loading = false;
-      state.expenseData = action.payload;
-    });
+    builder
 
-    /* ADD */
-    builder.addCase(addExpense.fulfilled, (state, action) => {
-      state.expenseData.unshift(action.payload);
-    });
+      /* FETCH */
+      .addCase(fetchExpenses.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchExpenses.fulfilled, (state, action) => {
+        state.loading = false;
+        state.expenseData = action.payload;
+      })
+      .addCase(fetchExpenses.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
 
-    /* DELETE */
-    builder.addCase(deleteExpense.fulfilled, (state, action) => {
-      state.expenseData = state.expenseData.filter(
-        (ex) => ex.id !== action.payload
-      );
-    });
+      /* ADD */
+      .addCase(addExpense.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.expenseData.unshift(action.payload);
+        }
+      })
 
-    /* EDIT */
-    builder.addCase(editExpense.fulfilled, (state, action) => {
-      state.expenseData = state.expenseData.map((ex) =>
-        ex.id === action.payload.id ? action.payload : ex
-      );
-    });
+      /* DELETE */
+      .addCase(deleteExpense.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.expenseData = state.expenseData.filter(
+            (e) => e.id !== action.payload
+          );
+        }
+      })
+
+      /* EDIT */
+      .addCase(editExpense.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.expenseData = state.expenseData.map((e) =>
+            e.id === action.payload.id ? action.payload : e
+          );
+        }
+      });
   },
 });
 
 export default expensesSlice.reducer;
-export const selectTotalAmount = (state) =>
-  state.expenses.expenseData.reduce((sum, ex) => sum + Number(ex.money), 0);
+
+/* ================= SELECTOR ================= */
+export const selectSummary = (state) => {
+  const data = state.expenses.expenseData;
+
+  let income = 0;
+  let expense = 0;
+
+  data.forEach((item) => {
+    const amount = Number(item.money);
+
+    if (item.category === "Salary") {
+      income += amount;
+    } else {
+      expense += amount;
+    }
+  });
+
+  return {
+    income,
+    expense,
+    balance: income - expense,
+  };
+};

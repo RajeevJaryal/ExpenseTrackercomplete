@@ -1,23 +1,26 @@
-import React, { useRef, useState, useEffect } from "react";
-import "./CompleteProfile.css";
+import { useRef, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
 
-const CompleteProfile = () => {
+export default function CompleteProfile() {
+  const navigate = useNavigate();
   const nameRef = useRef();
-  const imageUrlRef = useRef();
+  const imageRef = useRef();
+
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const [preview, setPreview] = useState("");
 
   useEffect(() => {
     const fetchProfile = async () => {
       const idToken = localStorage.getItem("token");
-      if (!idToken){
-        console.error("No idToken found!");
-        return;
-      } 
+      if (!idToken) return setFetching(false);
 
       try {
-        const response = await fetch(
+        const res = await fetch(
           `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${API_KEY}`,
           {
             method: "POST",
@@ -25,39 +28,38 @@ const CompleteProfile = () => {
             body: JSON.stringify({ idToken }),
           }
         );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error.message);
-        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message);
 
         const user = data.users[0];
 
-       
-        if (user.displayName) {
+        if (user.displayName && nameRef.current)
           nameRef.current.value = user.displayName;
-        }
 
-        if (user.photoUrl) {
-          imageUrlRef.current.value = user.photoUrl;
+        if (user.photoUrl && imageRef.current) {
+          imageRef.current.value = user.photoUrl;
+          setPreview(user.photoUrl);
         }
-      } catch (error) {
-        alert(error.message);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setFetching(false);
       }
     };
 
     fetchProfile();
   }, []);
 
-  const updateProfileHandler = async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+    setSuccess(false);
 
     const idToken = localStorage.getItem("token");
 
     try {
-      const response = await fetch(
+      const res = await fetch(
         `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${API_KEY}`,
         {
           method: "POST",
@@ -65,47 +67,140 @@ const CompleteProfile = () => {
           body: JSON.stringify({
             idToken,
             displayName: nameRef.current.value,
-            photoUrl: imageUrlRef.current.value,
+            photoUrl: imageRef.current.value,
             returnSecureToken: true,
           }),
         }
       );
 
-      const data = await response.json();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message);
 
-      if (!response.ok) {
-        throw new Error(data.error.message);
-      }
-
-      alert("Profile updated successfully");
-    } catch (error) {
-      alert(error.message);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
-    <div className="profile-scene">
-      <form className="profile-card" onSubmit={updateProfileHandler}>
-        <h2>Complete Your Profile</h2>
+    <div className="relative min-h-screen flex items-center justify-center px-4 bg-gray-900 text-white overflow-hidden">
 
-        <div className="profile-field">
-          <input type="text" ref={nameRef} required placeholder=" " />
-          <label>Full Name</label>
-        </div>
+      {/* Background */}
+      <div className="absolute w-80 h-80 bg-purple-500/30 blur-3xl rounded-full -top-16 -right-12"></div>
+      <div className="absolute w-64 h-64 bg-cyan-500/30 blur-3xl rounded-full bottom-10 -left-16"></div>
 
-        <div className="profile-field">
-          <input type="url" ref={imageUrlRef} required placeholder=" " />
-          <label>Profile Photo URL</label>
-        </div>
+      <div className="w-full max-w-md z-10">
 
-        <button disabled={loading}>
-          {loading ? "Updating..." : "Update Profile"}
+        {/* Back */}
+        <button
+          onClick={() => navigate("/header")}
+          className="flex items-center gap-2 text-sm text-gray-400 mb-6 hover:text-white transition"
+        >
+          ← Back to dashboard
         </button>
-      </form>
+
+        <div className="bg-gray-800/80 backdrop-blur border border-gray-700 rounded-2xl p-8 shadow-xl">
+
+          {/* Header */}
+          <div className="flex flex-col items-center mb-7">
+
+            {/* Avatar */}
+            <div className="relative mb-4">
+              <div className="w-20 h-20 rounded-full border border-purple-500/40 overflow-hidden flex items-center justify-center bg-gray-700">
+                {preview ? (
+                  <img
+                    src={preview}
+                    alt="avatar"
+                    className="w-full h-full object-cover"
+                    onError={() => setPreview("")}
+                  />
+                ) : (
+                  <span className="text-3xl text-purple-400">👤</span>
+                )}
+              </div>
+
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-xs">
+                ✏️
+              </div>
+            </div>
+
+            <h1 className="text-2xl font-extrabold">
+              Complete Profile
+            </h1>
+
+            <p className="text-sm text-gray-400 mt-1 text-center">
+              Update your display name and photo
+            </p>
+          </div>
+
+          {fetching ? (
+            <div className="flex justify-center py-8">
+              <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <form onSubmit={submit} className="flex flex-col gap-5">
+
+              {/* Name */}
+              <input
+                ref={nameRef}
+                type="text"
+                placeholder="Full Name"
+                required
+                className="w-full p-3 rounded-xl bg-gray-700 border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500"
+              />
+
+              {/* Image URL */}
+              <input
+                ref={imageRef}
+                type="url"
+                placeholder="Profile Image URL"
+                required
+                onChange={(e) => setPreview(e.target.value)}
+                className="w-full p-3 rounded-xl bg-gray-700 border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500"
+              />
+
+              <p className="text-xs text-gray-500">
+                Paste an image URL to preview above
+              </p>
+
+              {error && (
+                <p className="text-xs bg-red-500/10 text-red-400 px-3 py-2 rounded-lg border border-red-500/20">
+                  {error}
+                </p>
+              )}
+
+              {success && (
+                <p className="text-xs bg-green-500/10 text-green-400 px-3 py-2 rounded-lg border border-green-500/20">
+                  Profile updated successfully!
+                </p>
+              )}
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate("/header")}
+                  className="flex-1 py-3 rounded-xl border border-gray-600 text-gray-300"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-semibold disabled:opacity-60"
+                >
+                  {loading ? "Updating..." : "Update Profile →"}
+                </button>
+              </div>
+
+            </form>
+          )}
+        </div>
+      </div>
     </div>
   );
-};
-
-export default CompleteProfile;
+}

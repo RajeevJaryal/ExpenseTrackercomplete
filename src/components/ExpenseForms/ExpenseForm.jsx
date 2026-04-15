@@ -1,98 +1,223 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { addExpense, editExpense } from "../../store/expensesSlice";
-import PrintExpense from "./PrintExpense";
-import "./ExpenseForm.css";
+import {
+  addExpense,
+  editExpense,
+} from "../../store/expensesSlice";
 
-const ExpenseForm = () => {
+const CATEGORIES = [
+  { label: "Food", icon: "🍔" },
+  { label: "Petrol", icon: "⛽" },
+  { label: "Salary", icon: "💼" },
+  { label: "Entertainment", icon: "🎬" },
+  { label: "Shopping", icon: "🛍️" },
+  { label: "Health", icon: "💊" },
+  { label: "Bills", icon: "📄" },
+  { label: "Other", icon: "✨" },
+];
+
+export default function ExpenseForm() {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.expenses);
 
-  const [money, setMoney] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Food");
+  const { loading } = useSelector((s) => s.expenses);
+
+  const [form, setForm] = useState({
+    money: "",
+    description: "",
+    category: "Food",
+  });
 
   const [editingId, setEditingId] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [lastAmount, setLastAmount] = useState(0);
 
-  const submitHandler = (e) => {
+  const handleChange = (field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const resetForm = () => {
+    setForm({
+      money: "",
+      description: "",
+      category: "Food",
+    });
+
+    setEditingId(null);
+  };
+
+  const submit = (e) => {
     e.preventDefault();
 
-    const expense = {
-      money: Number(money),
-      description,
-      category,
+    if (!form.money || !form.description) return;
+
+    const payload = {
+      money: Number(form.money),
+      description: form.description.trim(),
+      category: form.category,
     };
 
     if (editingId) {
-      dispatch(editExpense({ id: editingId, updatedExpense: expense }));
+      dispatch(
+        editExpense({
+          id: editingId,
+          updatedExpense: payload,
+        })
+      );
     } else {
-      dispatch(addExpense(expense));
+      dispatch(addExpense(payload));
+      setLastAmount(payload.money);
+      setSubmitted(true);
+
+      setTimeout(() => {
+        setSubmitted(false);
+      }, 2000);
     }
 
     resetForm();
   };
 
-  const resetForm = () => {
-    setMoney("");
-    setDescription("");
-    setCategory("Food");
-    setEditingId(null);
-  };
-
   return (
-    <section className="expense-container">
-      <form className="expense-form" onSubmit={submitHandler}>
-        <h3>{editingId ? "Edit Expense" : "Add Expense"}</h3>
+    <div className="min-h-screen bg-slate-950 text-white">
 
-        <input
-          type="number"
-          value={money}
-          onChange={(e) => setMoney(e.target.value)}
-          placeholder="Money spent"
-          required
-        />
+      {/* NAVBAR */}
+      <nav className="sticky top-0 z-50 h-16 border-b border-white/10 backdrop-blur-xl bg-white/5 px-6 flex justify-between items-center">
 
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Description"
-          required
-        />
-
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
+        <button
+          onClick={() => navigate("/header")}
+          className="text-sm text-gray-400 hover:text-white transition"
         >
-          <option>Food</option>
-          <option>Petrol</option>
-          <option>Salary</option>
-        </select>
-
-        <button type="submit" disabled={loading}>
-          {loading
-            ? editingId
-              ? "Updating..."
-              : "Saving..."
-            : editingId
-            ? "Update Expense"
-            : "Save Expense"}
+          ← Dashboard
         </button>
 
-        {editingId && (
-          <button type="button" onClick={resetForm}>
-            Cancel Edit
-          </button>
+        <h1 className="font-bold text-lg">
+          {editingId ? "Edit Expense" : "Add Expense"}
+        </h1>
+
+        <div className="w-20"></div>
+      </nav>
+
+      {/* BODY */}
+      <div className="max-w-2xl mx-auto px-5 py-10">
+
+        {/* SUCCESS */}
+        {submitted && (
+          <div className="mb-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 text-emerald-400 font-medium">
+            ✅ ₹{lastAmount} Saved Successfully
+          </div>
         )}
-      </form>
 
-      <PrintExpense
-        setEditingId={setEditingId}
-        setMoney={setMoney}
-        setDescription={setDescription}
-        setCategory={setCategory}
-      />
-    </section>
+        {/* CARD */}
+        <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-2xl">
+
+          {/* TOP */}
+          <div className="text-center mb-8">
+
+            <p className="text-sm text-gray-400 mb-3">
+              {editingId ? "Update your transaction" : "Track your spending"}
+            </p>
+
+            <div className="flex justify-center items-center gap-3">
+              <span className="text-5xl text-violet-400 font-bold">₹</span>
+
+              <input
+                type="number"
+                value={form.money}
+                onChange={(e) =>
+                  handleChange("money", e.target.value)
+                }
+                placeholder="0"
+                className="bg-transparent w-52 text-center text-6xl font-bold outline-none placeholder:text-gray-600"
+              />
+            </div>
+          </div>
+
+          {/* FORM */}
+          <form onSubmit={submit} className="space-y-6">
+
+            {/* CATEGORY */}
+            <div>
+              <p className="text-sm text-gray-400 mb-3">
+                Select Category
+              </p>
+
+              <div className="grid grid-cols-4 gap-3">
+
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.label}
+                    type="button"
+                    onClick={() =>
+                      handleChange("category", cat.label)
+                    }
+                    className={`rounded-2xl p-3 text-sm border transition-all ${
+                      form.category === cat.label
+                        ? "bg-gradient-to-r from-violet-600 to-pink-500 border-transparent"
+                        : "bg-white/5 border-white/10 hover:bg-white/10"
+                    }`}
+                  >
+                    <div className="text-xl mb-1">
+                      {cat.icon}
+                    </div>
+
+                    {cat.label}
+                  </button>
+                ))}
+
+              </div>
+            </div>
+
+            {/* DESCRIPTION */}
+            <div>
+              <p className="text-sm text-gray-400 mb-3">
+                Description
+              </p>
+
+              <textarea
+                rows="4"
+                value={form.description}
+                onChange={(e) =>
+                  handleChange("description", e.target.value)
+                }
+                placeholder="Enter expense details..."
+                className="w-full rounded-2xl bg-white/5 border border-white/10 p-4 outline-none resize-none focus:border-violet-500"
+              />
+            </div>
+
+            {/* BUTTONS */}
+            <div className="flex gap-3 pt-2">
+
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="flex-1 rounded-2xl border border-white/10 py-3 font-medium hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 rounded-2xl py-3 font-semibold bg-gradient-to-r from-violet-600 to-pink-500 hover:opacity-90 transition"
+              >
+                {loading
+                  ? "Saving..."
+                  : editingId
+                  ? "Update Expense"
+                  : "Save Expense"}
+              </button>
+
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
   );
-};
-
-export default ExpenseForm;
+}
