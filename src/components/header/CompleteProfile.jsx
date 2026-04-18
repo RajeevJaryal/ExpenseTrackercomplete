@@ -1,10 +1,13 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { updateProfile } from "../../store/AuthReducer";
 
 const API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
 
 export default function CompleteProfile() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const nameRef = useRef();
   const imageRef = useRef();
 
@@ -14,10 +17,28 @@ export default function CompleteProfile() {
   const [error, setError] = useState("");
   const [preview, setPreview] = useState("");
 
+  const isTokenExpired = (token) => {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return Date.now() > payload.exp * 1000;
+    } catch {
+      return true;
+    }
+  };
+
   useEffect(() => {
     const fetchProfile = async () => {
       const idToken = localStorage.getItem("token");
-      if (!idToken) return setFetching(false);
+
+      if (!idToken) {
+        setError("No session found. Please log in again.");
+        return setFetching(false);
+      }
+
+      if (isTokenExpired(idToken)) {
+        setError("Session expired. Please log in again.");
+        return setFetching(false);
+      }
 
       try {
         const res = await fetch(
@@ -33,12 +54,13 @@ export default function CompleteProfile() {
 
         const user = data.users[0];
 
-        if (user.displayName && nameRef.current)
+        if (user.displayName && nameRef.current) {
           nameRef.current.value = user.displayName;
+        }
 
-        if (user.photoUrl && imageRef.current) {
-          imageRef.current.value = user.photoUrl;
-          setPreview(user.photoUrl);
+        if (user.photoURL && imageRef.current) {
+          imageRef.current.value = user.photoURL;
+          setPreview(user.photoURL);
         }
       } catch (err) {
         setError(err.message);
@@ -58,6 +80,18 @@ export default function CompleteProfile() {
 
     const idToken = localStorage.getItem("token");
 
+    if (!idToken) {
+      setError("No session found. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    if (isTokenExpired(idToken)) {
+      setError("Session expired. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(
         `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${API_KEY}`,
@@ -67,7 +101,7 @@ export default function CompleteProfile() {
           body: JSON.stringify({
             idToken,
             displayName: nameRef.current.value,
-            photoUrl: imageRef.current.value,
+            photoUrl: imageRef.current.value || "",
             returnSecureToken: true,
           }),
         }
@@ -76,8 +110,23 @@ export default function CompleteProfile() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error?.message);
 
+      if (data.idToken) {
+        localStorage.setItem("token", data.idToken);
+      }
+
+      // Push updated profile into Redux + localStorage
+      dispatch(
+        updateProfile({
+          displayName: data.displayName || nameRef.current.value,
+          photoUrl: data.photoUrl || imageRef.current.value || "",
+        })
+      );
+
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      setTimeout(() => {
+        setSuccess(false);
+        navigate("/header");
+      }, 1500);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -88,7 +137,7 @@ export default function CompleteProfile() {
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 bg-gray-900 text-white overflow-hidden">
 
-      {/* Background */}
+      {/* Background blobs */}
       <div className="absolute w-80 h-80 bg-purple-500/30 blur-3xl rounded-full -top-16 -right-12"></div>
       <div className="absolute w-64 h-64 bg-cyan-500/30 blur-3xl rounded-full bottom-10 -left-16"></div>
 
@@ -107,7 +156,7 @@ export default function CompleteProfile() {
           {/* Header */}
           <div className="flex flex-col items-center mb-7">
 
-            {/* Avatar */}
+            {/* Avatar preview */}
             <div className="relative mb-4">
               <div className="w-20 h-20 rounded-full border border-purple-500/40 overflow-hidden flex items-center justify-center bg-gray-700">
                 {preview ? (
@@ -127,9 +176,7 @@ export default function CompleteProfile() {
               </div>
             </div>
 
-            <h1 className="text-2xl font-extrabold">
-              Complete Profile
-            </h1>
+            <h1 className="text-2xl font-extrabold">Complete Profile</h1>
 
             <p className="text-sm text-gray-400 mt-1 text-center">
               Update your display name and photo
@@ -156,8 +203,7 @@ export default function CompleteProfile() {
               <input
                 ref={imageRef}
                 type="url"
-                placeholder="Profile Image URL"
-                required
+                placeholder="Profile Image URL (optional)"
                 onChange={(e) => setPreview(e.target.value)}
                 className="w-full p-3 rounded-xl bg-gray-700 border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500"
               />
@@ -174,7 +220,7 @@ export default function CompleteProfile() {
 
               {success && (
                 <p className="text-xs bg-green-500/10 text-green-400 px-3 py-2 rounded-lg border border-green-500/20">
-                  Profile updated successfully!
+                  ✓ Profile updated! Redirecting...
                 </p>
               )}
 
@@ -183,7 +229,7 @@ export default function CompleteProfile() {
                 <button
                   type="button"
                   onClick={() => navigate("/header")}
-                  className="flex-1 py-3 rounded-xl border border-gray-600 text-gray-300"
+                  className="flex-1 py-3 rounded-xl border border-gray-600 text-gray-300 hover:border-gray-400 transition"
                 >
                   Cancel
                 </button>
@@ -191,12 +237,11 @@ export default function CompleteProfile() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-semibold disabled:opacity-60"
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-semibold disabled:opacity-60 hover:opacity-90 transition"
                 >
                   {loading ? "Updating..." : "Update Profile →"}
                 </button>
               </div>
-
             </form>
           )}
         </div>

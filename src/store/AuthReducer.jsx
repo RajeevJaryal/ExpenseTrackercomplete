@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 const API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
 
-// 🔥 helper to create userId
 const generateUserId = (email) => email.replace(/[@.]/g, "");
 
 // LOGIN
@@ -17,10 +16,8 @@ export const loginUser = createAsyncThunk(
         body: JSON.stringify({ email, password, returnSecureToken: true }),
       }
     );
-
     const data = await res.json();
     if (!res.ok) throw new Error(data.error.message);
-
     return data;
   }
 );
@@ -37,10 +34,8 @@ export const signUpUser = createAsyncThunk(
         body: JSON.stringify({ email, password, returnSecureToken: true }),
       }
     );
-
     const data = await res.json();
     if (!res.ok) throw new Error(data.error.message);
-
     return data;
   }
 );
@@ -50,6 +45,8 @@ const initialState = {
   email: localStorage.getItem("email") || null,
   userId: localStorage.getItem("userId") || null,
   isVerified: JSON.parse(localStorage.getItem("emailVerified")) || false,
+  displayName: localStorage.getItem("displayName") || null,
+  photoUrl: localStorage.getItem("photoUrl") || null,
   loading: false,
   error: null,
 };
@@ -64,11 +61,22 @@ const authSlice = createSlice({
       state.email = null;
       state.userId = null;
       state.isVerified = false;
+      state.displayName = null;
+      state.photoUrl = null;
 
       localStorage.removeItem("token");
       localStorage.removeItem("email");
       localStorage.removeItem("userId");
       localStorage.removeItem("emailVerified");
+      localStorage.removeItem("displayName");
+      localStorage.removeItem("photoUrl");
+    },
+
+    updateProfile(state, action) {
+      state.displayName = action.payload.displayName || null;
+      state.photoUrl = action.payload.photoUrl || null;
+      localStorage.setItem("displayName", action.payload.displayName || "");
+      localStorage.setItem("photoUrl", action.payload.photoUrl || "");
     },
   },
 
@@ -85,14 +93,15 @@ const authSlice = createSlice({
         state.loading = false;
 
         const email = action.payload.email;
-        const userId = generateUserId(email); // 🔥 IMPORTANT
+        const userId = generateUserId(email);
 
         state.token = action.payload.idToken;
         state.email = email;
         state.userId = userId;
         state.isVerified = action.payload.emailVerified;
+        state.displayName = action.payload.displayName || null;
+        state.photoUrl = action.payload.photoUrl || null;
 
-        // 🔥 store in localStorage
         localStorage.setItem("token", action.payload.idToken);
         localStorage.setItem("email", email);
         localStorage.setItem("userId", userId);
@@ -100,6 +109,8 @@ const authSlice = createSlice({
           "emailVerified",
           JSON.stringify(action.payload.emailVerified || false)
         );
+        localStorage.setItem("displayName", action.payload.displayName || "");
+        localStorage.setItem("photoUrl", action.payload.photoUrl || "");
       })
 
       .addCase(loginUser.rejected, (state, action) => {
@@ -124,6 +135,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, updateProfile } = authSlice.actions;
 export default authSlice.reducer;
-
